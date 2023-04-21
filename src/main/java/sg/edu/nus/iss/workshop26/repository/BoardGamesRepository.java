@@ -3,6 +3,7 @@ package sg.edu.nus.iss.workshop26.repository;
 import java.util.List;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,9 +37,9 @@ public class BoardGamesRepository {
     public List<Game> getSortedByRank(Integer limit, Integer offset) {
         
         Query query = new Query();
-        Pageable pageable = PageRequest.of(offset, limit);
-        query.with(pageable);
+        query.addCriteria(Criteria.where("ranking").exists(true));
         query.with(Sort.by(Sort.Direction.ASC, "ranking"));
+        query.limit(limit).skip(offset);
 
         return mongoTemplate.find(query, Document.class, "games")
                             .stream()
@@ -46,11 +47,20 @@ public class BoardGamesRepository {
                             .toList();
     }
 
-    public Game getBoardGameById(Integer gameId) {
+    public Game getBoardGameById(String gameId) {
 
         Query query = new Query();
-        query.addCriteria(Criteria.where("gid").is(gameId));
+        if (ObjectId.isValid(gameId)) {
+            query.addCriteria(Criteria.where("_id").is(gameId));
+        } else {
+            System.out.println("Searching for gid... " + gameId);
+            query.addCriteria(Criteria.where("gid").is(Integer.parseInt(gameId)));
+        }
 
-        return mongoTemplate.findOne(query, Game.class, "games");
+        return mongoTemplate.find(query, Document.class, "games")
+                            .stream()
+                            .map(d -> Game.createFromDoc(d))
+                            .findFirst()
+                            .get();
     }
 }

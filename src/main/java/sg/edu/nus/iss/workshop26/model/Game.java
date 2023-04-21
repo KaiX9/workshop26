@@ -1,5 +1,7 @@
 package sg.edu.nus.iss.workshop26.model;
 
+import java.time.LocalDateTime;
+
 import org.bson.Document;
 
 import jakarta.json.Json;
@@ -7,6 +9,7 @@ import jakarta.json.JsonObject;
 
 public class Game {
     
+    private String _id;
     private Integer gid;
     private String name;
     private Integer year;
@@ -19,8 +22,9 @@ public class Game {
 
     }
     
-    public Game(Integer gid, String name, Integer year, Integer ranking, Integer users_rated, String url,
+    public Game(String _id, Integer gid, String name, Integer year, Integer ranking, Integer users_rated, String url,
             String image) {
+        this._id = _id;
         this.gid = gid;
         this.name = name;
         this.year = year;
@@ -35,6 +39,12 @@ public class Game {
     }
     public void setGid(Integer gid) {
         this.gid = gid;
+    }
+    public String get_id() {
+        return _id;
+    }
+    public void set_id(String _id) {
+        this._id = _id;
     }
     public String getName() {
         return name;
@@ -75,12 +85,14 @@ public class Game {
 
     @Override
     public String toString() {
-        return "Game [gid=" + gid + ", name=" + name + ", year=" + year + ", ranking=" + ranking + ", users_rated="
+        return "Game [name=" + name + ", year=" + year + ", ranking=" + ranking + ", users_rated="
                 + users_rated + ", url=" + url + ", image=" + image + "]";
     }
 
     public static Game createFromDoc(Document d) {
         Game game = new Game();
+        
+        game.set_id(d.getObjectId("_id").toString());
         game.setGid(d.getInteger("gid"));
         game.setName(d.getString("name"));
         game.setYear(d.getInteger("year"));
@@ -94,6 +106,7 @@ public class Game {
 
     public JsonObject toJSON() {
         return Json.createObjectBuilder()
+                .add("_id", get_id())
                 .add("gid", getGid())
                 .add("name", getName())
                 .add("year", getYear())
@@ -101,6 +114,7 @@ public class Game {
                 .add("users_rated", getUsers_rated())
                 .add("url", getUrl())
                 .add("image", getImage())
+                .add("timeStamp", LocalDateTime.now().toString())
                 .build();
     }
     

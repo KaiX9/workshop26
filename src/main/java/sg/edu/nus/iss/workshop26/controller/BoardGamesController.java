@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
 import sg.edu.nus.iss.workshop26.model.Game;
 import sg.edu.nus.iss.workshop26.model.Games;
 import sg.edu.nus.iss.workshop26.repository.BoardGamesRepository;
@@ -49,11 +47,7 @@ public class BoardGamesController {
         games.setTotal(gameList.size());
         games.setTimeStamp(LocalDateTime.now());
 
-        JsonObjectBuilder objBuilder = Json.createObjectBuilder();
-
-        objBuilder.add("boardgames", games.toJSON());
-        JsonObject result = null;
-        result = objBuilder.build();
+        JsonObject result = games.toJSON();
 
         return ResponseEntity.status(HttpStatus.OK)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -89,17 +83,20 @@ public class BoardGamesController {
     }
 
     @GetMapping(path="/games/{gameId}")
-    public ResponseEntity<String> getBoardGameById(@PathVariable Integer gameId) {
+    public ResponseEntity<String> getBoardGameById(@PathVariable String gameId) {
 
+        try {
         Game game = bgRepo.getBoardGameById(gameId);
 
-        JsonObjectBuilder objBuilder = Json.createObjectBuilder();
-        objBuilder.add("game", game.toJSON());
-
-        JsonObject result = objBuilder.build();
+        JsonObject result = game.toJSON();
 
         return ResponseEntity.status(HttpStatus.OK)
                             .contentType(MediaType.APPLICATION_JSON)
                             .body(result.toString());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body("Game ID of %s not found".formatted(gameId));
+        }
     }
 }
